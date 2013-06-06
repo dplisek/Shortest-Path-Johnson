@@ -8,7 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		B4302C9C1758F5E100103B75 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B4302C9B1758F5E100103B75 /* main.cpp */; };
-		B4302C9E1758F5E100103B75 /* Johnson.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = B4302C9D1758F5E100103B75 /* Johnson.1 */; };
+		B4302CAA1758F61C00103B75 /* CGraph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B4302CA41758F61C00103B75 /* CGraph.cpp */; };
+		B4302CAB1758F61C00103B75 /* t_edge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B4302CA61758F61C00103B75 /* t_edge.cpp */; };
+		B4302CAC1758F61C00103B75 /* t_node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B4302CA81758F61C00103B75 /* t_node.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -18,7 +20,6 @@
 			dstPath = /usr/share/man/man1/;
 			dstSubfolderSpec = 0;
 			files = (
-				B4302C9E1758F5E100103B75 /* Johnson.1 in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
@@ -27,7 +28,12 @@
 /* Begin PBXFileReference section */
 		B4302C981758F5E100103B75 /* Johnson */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Johnson; sourceTree = BUILT_PRODUCTS_DIR; };
 		B4302C9B1758F5E100103B75 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		B4302C9D1758F5E100103B75 /* Johnson.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = Johnson.1; sourceTree = "<group>"; };
+		B4302CA41758F61C00103B75 /* CGraph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CGraph.cpp; sourceTree = "<group>"; };
+		B4302CA51758F61C00103B75 /* CGraph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CGraph.h; sourceTree = "<group>"; };
+		B4302CA61758F61C00103B75 /* t_edge.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = t_edge.cpp; sourceTree = "<group>"; };
+		B4302CA71758F61C00103B75 /* t_edge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = t_edge.h; sourceTree = "<group>"; };
+		B4302CA81758F61C00103B75 /* t_node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = t_node.cpp; sourceTree = "<group>"; };
+		B4302CA91758F61C00103B75 /* t_node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = t_node.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,8 +66,13 @@
 		B4302C9A1758F5E100103B75 /* Johnson */ = {
 			isa = PBXGroup;
 			children = (
+				B4302CA41758F61C00103B75 /* CGraph.cpp */,
+				B4302CA51758F61C00103B75 /* CGraph.h */,
+				B4302CA61758F61C00103B75 /* t_edge.cpp */,
+				B4302CA71758F61C00103B75 /* t_edge.h */,
+				B4302CA81758F61C00103B75 /* t_node.cpp */,
+				B4302CA91758F61C00103B75 /* t_node.h */,
 				B4302C9B1758F5E100103B75 /* main.cpp */,
-				B4302C9D1758F5E100103B75 /* Johnson.1 */,
 			);
 			path = Johnson;
 			sourceTree = "<group>";
@@ -118,6 +129,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				B4302C9C1758F5E100103B75 /* main.cpp in Sources */,
+				B4302CAA1758F61C00103B75 /* CGraph.cpp in Sources */,
+				B4302CAB1758F61C00103B75 /* t_edge.cpp in Sources */,
+				B4302CAC1758F61C00103B75 /* t_node.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
