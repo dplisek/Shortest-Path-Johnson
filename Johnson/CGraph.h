@@ -14,20 +14,27 @@
 #include <vector>
 
 class CGraph {
-    vector<t_node> nodes;
-	vector<t_edge> edges;
-    int** distanceMatrix;
-    int** predecessorIndexMatrix;
+    bool oriented;
+    int nodeCounter;
+    int edgeCounter;
+    t_node **nodes;
+    t_edge **edges;
+    int **distanceMatrix;
+    int **predecessorIndexMatrix;
+    bool matricesInitialized;
+    void deleteNodes();
+    void deleteEdges();
+    void deleteDistanceMatrix();
+    void deletePredecessorMatrix();
 public:
+    CGraph(int nodeCounter, int edgeCounter, bool oriented);
+    ~CGraph();
     int getEdgeCounter() const;
     t_edge& getEdge(const int index) const;
     void setEdge(const int index, const t_edge& edge);
-    void addEdge(const t_edge& edge);
-    void deleteEdge(const int index);
     int getNodeCounter() const;
     t_node& getNode(const int index) const;
     void setNode(const int index, const t_node& node);
-    void addNode(const t_node& node);
     friend ostream& operator<<(ostream& os, const CGraph & graph);
     void setMatrix(int** distanceMatrix, int** predecessorIndexMatrix);
 };

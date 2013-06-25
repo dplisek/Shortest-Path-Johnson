@@ -15,153 +15,188 @@
 #define INF_DIST 9999
 #define NO_NODE 0
 
-class CGraphWrapper {
-    vector<t_node> additionalNodes;
-	vector<t_edge> additionalEdges;
-    CGraph* g;
-public:
-    CGraphWrapper(CGraph *g);
-    int getEdgeCounter() const;
-    t_edge& getEdge(const int index) const;
-    void addEdge(const t_edge& edge);
-    void addAdditionalEdge(const t_edge& edge);
-    int getNodeCounter() const;
-    t_node& getNode(const int index) const;
-    void setNode(const int index, const t_node& node);
-    void addNode(const t_node& node);
-    void addAdditionalNodeAndJoinItWithAllOtherNodesUsingZeroWeightEdges(const t_node& node);
-    void setMatrix(int** distanceMatrix, int** predecessorIndexMatrix);
-};
-
-CGraphWrapper::CGraphWrapper(CGraph *g) : g(g) {
-}
-
-int CGraphWrapper::getEdgeCounter() const {
-    return g->getEdgeCounter() + (int) additionalEdges.size();
-}
-
-t_edge& CGraphWrapper::getEdge(const int index) const {
-    if (index <= g->getEdgeCounter()) {
-        return g->getEdge(index);
+void BFinitPaths(CGraph& g, int* h) {
+    for (int i = 1; i <= g.getNodeCounter(); ++i) {
+        h[i - 1] = INF_DIST;
     }
-	return *(new t_edge(additionalEdges[index - g->getEdgeCounter() - 1]));
+    h[g.getNodeCounter()] = 0;
 }
 
-void CGraphWrapper::addEdge(const t_edge& edge) {
-    g->addEdge(edge);
+void BFrelax(CGraph& g, int* h, int edgeIndex) {
+    t_edge edge = g.getEdge(edgeIndex);
+    int sourceDist = h[edge.sourceIndex - 1];
+    if (sourceDist == INF_DIST) return;
+    int destDist = h[edge.destinationIndex - 1];
+    int newDestDist = sourceDist + edge.value;
+    if (newDestDist >= destDist) return;
+    h[edge.destinationIndex - 1] = newDestDist;
 }
 
-int CGraphWrapper::getNodeCounter() const {
-	return g->getNodeCounter() + (int) additionalNodes.size();
+void BFrelaxAdditional(CGraph& g, int* h, int nodeIndex) {
+    int sourceDist = h[g.getNodeCounter()];
+    if (sourceDist == INF_DIST) return;
+    int destDist = h[nodeIndex - 1];
+    int newDestDist = sourceDist;
+    if (newDestDist >= destDist) return;
+    h[nodeIndex - 1] = newDestDist;
 }
 
-t_node& CGraphWrapper::getNode(const int index) const {
-    if (index <= g->getNodeCounter()) {
-        return g->getNode(index);
+void BFrelaxAllEdges(CGraph& g, int* h) {
+    for (int i = 1; i <= g.getEdgeCounter(); ++i) {
+        BFrelax(g, h, i);
     }
-	return *(new t_node(additionalNodes[index - g->getNodeCounter() - 1]));
-}
-
-void CGraphWrapper::setNode(const int index, const t_node &node) {
-    if (index <= g->getNodeCounter()) {
-        g->setNode(index, node);
-        return;
-    }
-    additionalNodes[index - g->getNodeCounter() - 1] = node;
-}
-
-void CGraphWrapper::addNode(const t_node& node) {
-    g->addNode(node);
-}
-
-void CGraphWrapper::addAdditionalNodeAndJoinItWithAllOtherNodesUsingZeroWeightEdges(const t_node &node) {
-    additionalNodes.push_back(node);
-    int newNodeIndex = getNodeCounter();
-    for (int i = 1; i < newNodeIndex; i++) {
-        t_edge edge(newNodeIndex, i, 0);
-        addAdditionalEdge(edge);
+    for (int i = 1; i <= g.getNodeCounter(); ++i) {
+        BFrelaxAdditional(g, h, i);
     }
 }
 
-void CGraphWrapper::addAdditionalEdge(const t_edge &edge) {
-    additionalEdges.push_back(edge);
+void relaxAllEdgesRepetetively(CGraph& g, int* h) {
+    for (int i = 0; i < g.getNodeCounter(); ++i) {
+        BFrelaxAllEdges(g, h);
+    }
 }
 
-void CGraphWrapper::setMatrix(int** distanceMatrix, int** predecessorIndexMatrix) {
-    g->setMatrix(distanceMatrix, predecessorIndexMatrix);
+bool BFhasNegativeCycles(CGraph& g, int* h) {
+    for (int i = 1; i <= g.getEdgeCounter(); ++i) {
+        t_edge edge = g.getEdge(i);
+        int sourceDist = h[edge.sourceIndex - 1];
+        if (sourceDist == INF_DIST) continue;
+        int destDist = h[edge.destinationIndex - 1];
+        int newDestDist = sourceDist + edge.value;
+        if (newDestDist < destDist) return true;
+    }
+    for (int i = 1; i <= g.getNodeCounter(); ++i) {
+        int sourceDist = h[g.getNodeCounter()];
+        if (sourceDist == INF_DIST) continue;
+        int destDist = h[i - 1];
+        int newDestDist = sourceDist;
+        if (newDestDist < destDist) return true;
+    }
+    return false;
 }
 
+bool BF(CGraph& g, int* h) {
+    BFinitPaths(g, h);
+    relaxAllEdgesRepetetively(g, h);
+    return !BFhasNegativeCycles(g, h);
+}
 
+void makeWeightsPositive(CGraph& g, int* h) {
+    for (int i = 1; i <= g.getEdgeCounter(); i++) {
+        t_edge e = g.getEdge(i);
+        e.value = e.value + h[e.sourceIndex - 1] - h[e.destinationIndex - 1];
+        g.setEdge(i, e);
+    }
+}
 
-void initPaths(CGraphWrapper *wrapper, const int startIndex) {
-    for (int i = 1; i <= wrapper->getNodeCounter(); ++i) {
-        t_node node = wrapper->getNode(i);
+void DijskraInitPaths(CGraph& g, const int startIndex) {
+    for (int i = 1; i <= g.getNodeCounter(); ++i) {
+        t_node node = g.getNode(i);
         if (i == startIndex) {
             node.distance = 0;
         } else {
             node.distance = INF_DIST;
         }
         node.predecessorIndex = NO_NODE;
-        wrapper->setNode(i, node);
+        g.setNode(i, node);
     }
 }
 
-void relax(CGraphWrapper *wrapper, int edgeIndex) {
-    t_edge edge = wrapper->getEdge(edgeIndex);
-    int sourceDist = wrapper->getNode(edge.sourceIndex).distance;
+int DijskraGetNearestIndex(CGraph& g, bool* processed) {
+    int nearestDist = INF_DIST;
+    int nearestIndex = NO_NODE;
+    for (int i = 1; i <= g.getNodeCounter(); ++i) {
+        if (processed[i - 1]) continue;
+        if (g.getNode(i).distance < nearestDist) {
+            nearestDist = g.getNode(i).distance;
+            nearestIndex = i;
+        }
+    }
+    return nearestIndex;
+}
+
+vector<int>* DijskraGetAdjEdges(CGraph& g, int nodeIndex) {
+    vector<int>* adjEdges = new vector<int>();
+    for (int i = 1; i <= g.getEdgeCounter(); ++i) {
+        t_edge edge = g.getEdge(i);
+		if (edge.sourceIndex != nodeIndex) continue;
+        adjEdges->push_back(i);
+	}
+	return adjEdges;
+}
+
+void DijskraRelax(CGraph& g, int edgeIndex) {
+    t_edge edge = g.getEdge(edgeIndex);
+    int sourceDist = g.getNode(edge.sourceIndex).distance;
     if (sourceDist == INF_DIST) return;
-    t_node destNode = wrapper->getNode(edge.destinationIndex);
+    t_node destNode = g.getNode(edge.destinationIndex);
     int destDist = destNode.distance;
     int newDestDist = sourceDist + edge.value;
     if (newDestDist >= destDist) return;
     destNode.distance = newDestDist;
     destNode.predecessorIndex = edge.sourceIndex;
-    wrapper->setNode(edge.destinationIndex, destNode);
+    g.setNode(edge.destinationIndex, destNode);
 }
 
-void relaxAllEdges(CGraphWrapper *wrapper) {
-    for (int i = 1; i <= wrapper->getEdgeCounter(); ++i) {
-        relax(wrapper, i);
+void Dijskra(CGraph& g, const int startIndex) {
+    DijskraInitPaths(g, startIndex);
+    bool* processed = new bool[g.getNodeCounter()];
+    for (int i = 1; i <= g.getNodeCounter(); ++i) {
+        processed[i - 1] = false;
+    }
+    int nearestIndex;
+    while ((nearestIndex = DijskraGetNearestIndex(g, processed)) != NO_NODE) {
+        processed[nearestIndex - 1] = true;
+        vector<int>* adjEdges = DijskraGetAdjEdges(g, nearestIndex);
+        for (vector<int>::iterator it = adjEdges->begin(); it != adjEdges->end(); ++it) {
+            DijskraRelax(g, *it);
+        }
+        delete adjEdges;
+    }
+    delete [] processed;
+}
+
+int getRealDistance(CGraph& g, int* h, int i, int j) {
+    if (g.getNode(j).distance == INF_DIST) return g.getNode(j).distance;
+    return g.getNode(j).distance - h[i - 1] + h[j - 1];
+}
+
+void dijkstraFromEachNode(CGraph& g, int* h, int** distanceMatrix, int** predecessorIndexMatrix) {
+    for (int i = 1; i <= g.getNodeCounter(); i++) {
+        Dijskra(g, i);
+        for (int j = 1; j <= g.getNodeCounter(); j++) {
+            distanceMatrix[i - 1][j - 1] = getRealDistance(g, h, i, j);
+            predecessorIndexMatrix[i - 1][j - 1] = g.getNode(j).predecessorIndex;
+        }
     }
 }
 
-void relaxAllEdgesRepetetively(CGraphWrapper *wrapper) {
-    for (int i = 0; i < wrapper->getNodeCounter() - 1; ++i) {
-        relaxAllEdges(wrapper);
+int** initMatrix(int size) {
+    int** matrix = new int*[size];
+    for (int i = 0; i < size; i++) {
+        matrix[i] = new int[size];
     }
-}
-
-bool hasNegativeCycles(CGraphWrapper *wrapper) {
-    for (int i = 1; i <= wrapper->getEdgeCounter(); ++i) {
-        t_edge edge = wrapper->getEdge(i);
-        int sourceDist = wrapper->getNode(edge.sourceIndex).distance;
-        if (sourceDist == INF_DIST) continue;
-        t_node destNode = wrapper->getNode(edge.destinationIndex);
-        int destDist = destNode.distance;
-        int newDestDist = sourceDist + edge.value;
-        if (newDestDist < destDist) return true;
-    }
-    return false;
-}
-
-bool BF(CGraphWrapper *wrapper, const int startIndex) {
-    initPaths(wrapper, startIndex);
-    relaxAllEdgesRepetetively(wrapper);
-    return !hasNegativeCycles(wrapper);
-}
-
-void addExtraNodeToWrapper(CGraphWrapper *wrapper) {
-    t_node node;
-    wrapper->addAdditionalNodeAndJoinItWithAllOtherNodesUsingZeroWeightEdges(node);
+    return matrix;
 }
 
 bool Johnson(CGraph& g) {
-    CGraphWrapper *wrapper = new CGraphWrapper(&g);
-    addExtraNodeToWrapper(wrapper);
-    if (!BF(wrapper, wrapper->getNodeCounter())) {
+    int* h = new int[g.getNodeCounter() + 1];
+    if (!BF(g, h)) {
+        delete [] h;
         return false;
     }
-    
+    makeWeightsPositive(g, h);
+    int** distanceMatrix = initMatrix(g.getNodeCounter());
+    int** predecessorIndexMatrix = initMatrix(g.getNodeCounter());
+    dijkstraFromEachNode(g, h, distanceMatrix, predecessorIndexMatrix);
+    g.setMatrix(distanceMatrix, predecessorIndexMatrix);
+    delete [] h;
+    for (int i = 0; i < g.getNodeCounter(); i++) {
+        delete [] distanceMatrix[i];
+        delete [] predecessorIndexMatrix[i];
+    }
+    delete [] distanceMatrix;
+    delete [] predecessorIndexMatrix;
     return true;
 }
 
@@ -169,41 +204,38 @@ bool Johnson(CGraph& g) {
 
 int main(int argc, const char * argv[])
 {
-    CGraph *g = new CGraph;
+    CGraph *g = new CGraph(12, 12, true);
     
-    t_node node1;
-    t_node node2;
-    t_node node3;
-    t_node node4;
-    t_node node5;
+    t_node node;
+    for (int i = 1; i <= 12; i++) {
+        g->setNode(i, node);
+    }
     
-    g->addNode(node1);
-    g->addNode(node2);
-    g->addNode(node3);
-    g->addNode(node4);
-    g->addNode(node5);
+    t_edge edge2(1, 5, 4);
+    t_edge edge3(1, 6, 12);
+    t_edge edge5(1, 7, 11);
+    t_edge edge6(1, 11, -1);
+    t_edge edge8(2, 10, 1);
+    t_edge edge9(3, 4, 3);
+    t_edge edge11(5, 10, -1);
+    t_edge edge12(6, 9, 3);
+    t_edge edge13(7, 1, 11);
+    t_edge edge14(8, 6, -2);
+    t_edge edge15(9, 1, -5);
+    t_edge edge16(9, 2, 12);
     
-    t_edge edge2(1, 2, 3);
-    t_edge edge3(1, 3, 6);
-    t_edge edge5(2, 3, 2);
-    t_edge edge6(2, 4, 6);
-    t_edge edge8(3, 4, -3);
-    t_edge edge9(4, 1, 1);
-    t_edge edge11(4, 5, 1);
-    t_edge edge12(5, 1, -2);
-    t_edge edge13(5, 2, 3);
-    t_edge edge14(5, 3, 4);
-    
-    g->addEdge(edge2);
-    g->addEdge(edge3);
-    g->addEdge(edge5);
-    g->addEdge(edge6);
-    g->addEdge(edge8);
-    g->addEdge(edge9);
-    g->addEdge(edge11);
-    g->addEdge(edge12);
-    g->addEdge(edge13);
-    g->addEdge(edge14);
+    g->setEdge(1, edge2);
+    g->setEdge(2, edge3);
+    g->setEdge(3, edge5);
+    g->setEdge(4, edge6);
+    g->setEdge(5, edge8);
+    g->setEdge(6, edge9);
+    g->setEdge(7, edge11);
+    g->setEdge(8, edge12);
+    g->setEdge(9, edge13);
+    g->setEdge(10, edge14);
+    g->setEdge(11, edge15);
+    g->setEdge(12, edge16);
     
     Johnson(*g);
     
